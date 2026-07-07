@@ -1,0 +1,249 @@
+import { Sequelize, DataTypes, Model } from 'sequelize';
+import path from 'path';
+import { extendTypes } from 'graphql-gene';
+import type { UserRole } from './src/auth/types';
+
+
+const storagePath = process.env.NODE_ENV === 'test' 
+  ? ':memory:' 
+  : path.resolve(__dirname, 'database.sqlite');
+
+export const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: storagePath,
+  logging: false
+});
+
+export class Product extends Model {
+  declare id: number;
+  declare name: string;
+}
+
+Product.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
+  },
+  {
+    sequelize,
+    modelName: 'Product',
+    tableName: 'Products',
+    timestamps: false
+  }
+);
+
+export class User extends Model {
+  declare id: number;
+  declare email: string;
+  declare passwordHash: string;
+  declare role: UserRole;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+}
+
+User.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'viewer',
+      validate: {
+        isIn: [['admin', 'analyst', 'viewer']]
+      }
+    }
+  },
+  {
+    sequelize,
+    modelName: 'User',
+    tableName: 'Users',
+    timestamps: true
+  }
+);
+
+export class SavedChart extends Model {
+  declare id: number;
+  declare title: string;
+  declare question: string | null;
+  declare chartConfigJson: string;
+  declare dataJson: string;
+  declare createdByUserId: number;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+}
+
+SavedChart.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'Untitled chart'
+    },
+    question: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    chartConfigJson: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    dataJson: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    createdByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
+    }
+  },
+  {
+    sequelize,
+    modelName: 'SavedChart',
+    tableName: 'SavedCharts',
+    timestamps: true
+  }
+);
+
+export class SharedChartLink extends Model {
+  declare id: number;
+  declare savedChartId: number;
+  declare shareToken: string;
+  declare createdByUserId: number;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+}
+
+SharedChartLink.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    savedChartId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'SavedCharts',
+        key: 'id'
+      }
+    },
+    shareToken: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    createdByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
+    }
+  },
+  {
+    sequelize,
+    modelName: 'SharedChartLink',
+    tableName: 'SharedChartLinks',
+    timestamps: true
+  }
+);
+
+export class SharedDashboard extends Model {
+  declare id: string;
+  declare filtersJson: string;
+  declare title: string | null;
+  declare createdByUserId: number;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+}
+
+SharedDashboard.init(
+  {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    filtersJson: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    createdByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'Users', key: 'id' },
+    },
+  },
+  {
+    sequelize,
+    modelName: 'SharedDashboard',
+    tableName: 'SharedDashboards',
+    timestamps: true,
+  }
+);
+
+User.hasMany(SavedChart, {
+  foreignKey: 'createdByUserId'
+});
+
+SavedChart.belongsTo(User, {
+  foreignKey: 'createdByUserId'
+});
+
+SavedChart.hasMany(SharedChartLink, {
+  foreignKey: 'savedChartId'
+});
+
+SharedChartLink.belongsTo(SavedChart, {
+  foreignKey: 'savedChartId'
+});
+
+User.hasMany(SharedDashboard, { foreignKey: 'createdByUserId' });
+SharedDashboard.belongsTo(User, { foreignKey: 'createdByUserId' });
+
+try {
+  extendTypes({
+    Query: {
+      products: {
+        resolver: 'default',
+        returnType: '[Product!]' as any,
+      },
+    },
+  });
+} catch (error) {
+  console.warn('⚠️ Failed to extend GraphQL types:', error);
+}
