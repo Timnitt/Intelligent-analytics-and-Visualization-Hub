@@ -269,7 +269,7 @@ export async function startServer(): Promise<void> {
 
     app.use("/graphql", expressMiddleware(server));
 
-    const PORT = 4000;
+    const PORT = Number(process.env.PORT) || 4000;
 
     app.listen(PORT, () => {
       console.log(
