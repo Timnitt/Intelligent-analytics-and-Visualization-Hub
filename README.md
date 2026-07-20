@@ -4,7 +4,7 @@ An intelligent analytics sandbox dashboard built for **Elio Tax** during the **P
 
 ## 📝 Project Overview
 
-Leadership lacks a single, flexible place to explore operational and commercial signals (such as tax or revenue data). With this solution, a user can explore, visualise, and share operational and commercial data — without writing a single line of SQL. A user can ask a business question (e.g., *"revenue by category"*) to AI. An AI-infused layer then interprets the required filters, aggregates, picks an appropriate visual representation, and renders the result.
+Leadership lacks a single, flexible place to explore operational and commercial signals (such as tax or revenue data). With this solution, a user can explore, visualise, and share operational and commercial data - without writing a single line of SQL. A user can ask a business question (e.g., *"revenue by category"*) to AI. An AI-infused layer then interprets the required filters, aggregates, picks an appropriate visual representation, and renders the result.
 
 ---
 
@@ -155,3 +155,18 @@ npm run dev
 ```
 
 Open in browser: [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 👥 Team
+
+This project was developed by a team of 6 members:
+
+- Timnit
+- Gabryela
+- Burcu
+- Recep
+- Aleksei
+- Heba
+
+See [PROJECT_SNAPSHOT.md](PROJECT_SNAPSHOT.md) for the full record of the team baseline.
