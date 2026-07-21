@@ -22,9 +22,3 @@ yarn-error.log*
 # Operating System files
 .DS_Store
 Thumbs.db
-
-# SQLite database and runtime files
-*.sqlite
-*.sqlite-journal
-*.sqlite-shm
-*.sqlite-wal
